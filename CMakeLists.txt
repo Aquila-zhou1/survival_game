@@ -20,12 +20,24 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         ${TS_FILES}
+        map.cpp
+        map.h
+        player.h
+        player.cpp
+        enemy.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(zty
+
+
+qt_add_executable(zty
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        map.cpp
+        map.h
+        player.h
+        enemy.h
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET zty APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
