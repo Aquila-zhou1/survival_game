@@ -23,6 +23,11 @@ public:
     int getY() const { return y; }
     int getHealth() const { return health; }
     EnemyType getType() const { return type; }
+    // takeDamage方法，用于敌人受到伤害
+    void takeDamage(int damage) {
+        health -= damage;
+        if (health < 0) health = 0;  // 确保生命值不小于0
+    }
 
 protected:
     int health;

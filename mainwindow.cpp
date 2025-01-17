@@ -17,11 +17,11 @@ MainWindow::MainWindow(QWidget *parent)
     mapDisplay = new QTextEdit(this);  // 创建 QTextEdit 控件用于显示地图
     mapDisplay->setReadOnly(true);
     // 创建玩家和武器
-    //Weapon *meleeWeapon = new Weapon(WeaponType::Melee, 1, 5, 10);
-    WeaponType player1_weapon = WeaponType::Melee;  // 设定玩家的武器类型为近战
+    Weapon* meleeWeapon = new Weapon(WeaponType::Melee, 1, 5, 10);  // 创建一个近战武器
 
-    // 使用新的构造函数初始化玩家
-    player1 = new Player("Warrior", 100, 20, 1, player1_weapon, 1, 0, 0);  // 传递武器类型、伤害区域、持续时间、冷却时间等
+    // 使用新的构造函数初始化玩家，传递武器对象
+    player1 = new Player("Warrior", 100, 20, 1, meleeWeapon, 1, 0, 0);  // 传递武器对象、伤害区域、持续时间、冷却时间等
+
 
     // 设置布局
     QVBoxLayout *layout = new QVBoxLayout();
@@ -82,6 +82,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
     int playerX = player1->getX();
     int playerY = player1->getY();
     gameMap->getCell(playerY, playerX).cellType = CellType::Player;  // 更新玩家的新位置
+    // 玩家攻击敌人
+    player1->attack(gameMap);  // 添加玩家攻击
 
     // 每次按键后，更新地图
     updateMap();
@@ -97,25 +99,39 @@ void MainWindow::initializeGame() {
     // 随机生成至少 5 个障碍物
     gameMap->generateObstacles(5);
 
-    // 选择玩家角色
-    player1 = new Player("Warrior", 100, 20, 1, WeaponType::Melee, 1, 0, 0);  // 近战武器
+    // 创建武器对象
+    Weapon* meleeWeapon = new Weapon(WeaponType::Melee, 1, 0, 0);  // 创建近战武器
+
+    // 选择玩家角色，传递武器对象
+    player1 = new Player("Warrior", 100, 20, 1, meleeWeapon, 1, 0, 0);  // 传递武器对象
+
 
     gameMap->getCell(0, 0).cellType = CellType::Player;  // 将玩家放在左上角（0, 0）
 
     // 将地图转换为字符串并显示在 QTextEdit 中
     updateMap();
     // 创建敌人
-    enemies.push_back(new MeleeEnemy(8, 8));  // 创建一个近战敌人
-    enemies.push_back(new RangedEnemy(1, 1)); // 创建一个远程敌人
+    // 创建两个敌人
+    Enemy* enemy1 = new MeleeEnemy(8, 8);  // 近战敌人
+    Enemy* enemy2 = new RangedEnemy(1, 1); // 远程敌人
+
+    // 设置敌人
+    gameMap->setEnemy(enemy1, enemy2);
+    // 将地图转换为字符串并显示在 QTextEdit 中
+    updateMap();
 }
 
 void MainWindow::updateMap() {
     QString mapString = "";
+    // 直接从 Map 中获取敌人
     for (int i = 0; i < gameMap->getRowCount(); ++i) {
         for (int j = 0; j < gameMap->getColCount(); ++j) {
             bool enemyFound = false;
-            for (auto enemy : enemies) {
-                if (enemy->getX() == j && enemy->getY() == i) {
+
+            // 检查是否有敌人在当前位置
+            for (int k = 0; k < 2; ++k) {  // 这里只有两个敌人
+                Enemy* enemy = gameMap->getEnemy(k);
+                if (enemy && enemy->getX() == j && enemy->getY() == i) {
                     if (enemy->getType() == EnemyType::Melee) {
                         mapString += " M ";  // 近战敌人
                     } else if (enemy->getType() == EnemyType::Ranged) {
@@ -127,6 +143,7 @@ void MainWindow::updateMap() {
                     break;
                 }
             }
+
             if (!enemyFound) {
                 if (gameMap->getCell(i, j).cellType == CellType::Normal) {
                     mapString += " . ";  // 普通格子
@@ -146,11 +163,16 @@ void MainWindow::updateMap() {
     mapDisplay->setText(mapString);
 }
 
+
 void MainWindow::gameLoop() {
     // 更新敌人的位置
-    for (auto enemy : enemies) {
-        enemy->move(gameMap, player1);  // 每个敌人都向玩家方向移动
-        enemy->attack(player1);  // 每个敌人都攻击玩家
+    // 逐个更新敌人的位置和攻击玩家
+    for (int i = 0; i < 2; ++i) {
+        Enemy* enemy = gameMap->getEnemy(i);
+        if (enemy) {
+            enemy->move(gameMap, player1);  // 让敌人向玩家移动
+            enemy->attack(player1);  // 敌人攻击玩家
+        }
     }
 
     // 更新地图

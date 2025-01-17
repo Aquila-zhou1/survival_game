@@ -37,6 +37,7 @@ qt_add_executable(zty
         map.h
         player.h
         enemy.h
+        weapon.h
 
     )
 # Define target properties for Android with Qt 6 as:
