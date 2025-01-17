@@ -1,6 +1,6 @@
 #ifndef MAP_H
 #define MAP_H
-
+//#include "enemy.h"
 #include <vector>
 // 定义格子的类型
 enum class CellType {
@@ -9,6 +9,8 @@ enum class CellType {
     Player,      // 玩家
     Enemy        // 敌人
 };
+
+class Enemy;
 
 // Cell 类，表示地图上的每个格子
 class Cell {
@@ -34,12 +36,23 @@ public:
     void printMap() const;                  // 打印地图（调试用）
     int getRowCount() const;                // 获取地图的行数
     int getColCount() const;                // 获取地图的列数
-
+    // 获取指定索引的敌人（这里只有两个敌人）
+    Enemy* getEnemy(int index) {
+        if (index == 0) return enemy1;
+        if (index == 1) return enemy2;
+        return nullptr;  // 索引越界时返回空指针
+    }
+    // 设置敌人
+    void setEnemy(Enemy* e1, Enemy* e2) {
+        enemy1 = e1;
+        enemy2 = e2;
+    }
 
 private:
     int rows, cols;                          // 地图的行数和列数
     std::vector<std::vector<Cell>> grid;     // 二维格子数组
-
+    Enemy* enemy1 = nullptr;  // 第一个敌人
+    Enemy* enemy2 = nullptr;  // 第二个敌人
 };
 
 #endif // MAP_H

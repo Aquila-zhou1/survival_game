@@ -1,9 +1,9 @@
 #include "player.h"
 #include "mainwindow.h"
 
-Player::Player(QString name, int health, int attackPower, int speed, WeaponType weaponType, int damageArea, int duration, int cooldown, QObject *parent)
+Player::Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent)
     : QObject(parent), name(name), health(health), attackPower(attackPower), speed(speed),
-    weaponType(weaponType), damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0) {}
+    weapon(weapon), damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0) {}
 
 void Player::takeDamage(int damage) {
     health -= damage;
@@ -38,22 +38,37 @@ void Player::move(int dx, int dy, Map *gameMap) {
     if (y >= gameMap->getRowCount()) y = gameMap->getRowCount() - 1;
 }
 
+void Player::attack(Map* gameMap) {
+    qDebug() << "Attack started";
 
-void Player::attack(Map *gameMap) {
-    // if (weaponType == WeaponType::Melee) {
-    //     // 近战攻击：检查玩家当前位置的敌人
-    //     for (auto enemy : gameMap->getEnemies()) {
-    //         if (enemy->getX() == x && enemy->getY() == y) {
-    //             enemy->takeDamage(attackPower);  // 玩家攻击敌人
-    //             return;
-    //         }
-    //     }
-    // } else if (weaponType == WeaponType::Ranged) {
-    //     // 远程攻击：检查范围内的敌人
-    //     for (auto enemy : gameMap->getEnemies()) {
-    //         if (abs(enemy->getX() - x) <= damageArea && abs(enemy->getY() - y) <= damageArea) {
-    //             enemy->takeDamage(attackPower);  // 玩家攻击敌人
-    //         }
-    //     }
-    // }
+    if (weapon->getType() == WeaponType::Melee) {
+        for (int i = 0; i < 2; ++i) {
+            Enemy* enemy = gameMap->getEnemy(i);
+            if (!enemy) {
+                qDebug() << "Enemy " << i << " is nullptr";
+                continue;
+            }
+            qDebug() << "Checking enemy at" << enemy->getX() << enemy->getY();
+            if (enemy && enemy->getX() == x && enemy->getY() == y) {
+                enemy->takeDamage(attackPower);  // 玩家攻击敌人
+                qDebug() << "Attacked enemy at" << enemy->getX() << enemy->getY();
+            }
+        }
+    } else if (weapon->getType() == WeaponType::Ranged) {
+        for (int i = 0; i < 2; ++i) {
+            Enemy* enemy = gameMap->getEnemy(i);
+            if (!enemy) {
+                qDebug() << "Enemy " << i << " is nullptr";
+                continue;
+            }
+            qDebug() << "Checking enemy at" << enemy->getX() << enemy->getY();
+            if (enemy && abs(enemy->getX() - x) <= weapon->getDamageArea() && abs(enemy->getY() - y) <= weapon->getDamageArea()) {
+                enemy->takeDamage(attackPower);  // 玩家攻击敌人
+                qDebug() << "Attacked enemy at" << enemy->getX() << enemy->getY();
+            }
+        }
+    }
+
+    qDebug() << "Attack ended";
+    weapon->useWeapon();
 }

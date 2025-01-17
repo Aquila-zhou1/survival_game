@@ -4,20 +4,14 @@
 #include <QString>
 #include <QObject>
 #include "map.h"
-
-enum class WeaponType {
-    Melee,   // 近战武器
-    Ranged   // 远程武器
-};
-
+#include "weapon.h"
 
 class Player : public QObject {
     Q_OBJECT
 public:
     // Player 构造函数，初始化玩家的各项属性
-    explicit Player(QString name, int health, int attackPower, int speed,
-                    WeaponType weaponType, int damageArea, int duration,
-                    int cooldown, QObject *parent = nullptr);
+    // 构造函数传递一个 Weapon 对象
+    Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent = nullptr);
 
     QString getName() const { return name; }
     int getHealth() const { return health; }
@@ -33,7 +27,7 @@ private:
     int health;         // 玩家生命值
     int attackPower;    // 玩家攻击力
     int speed;          // 玩家移动速度
-    WeaponType weaponType;      // 玩家持有的武器
+    Weapon* weapon;      // 玩家持有的武器
     int damageArea;     // 伤害区域
     int duration;       // 持续时间
     int cooldown;       // 冷却时间
