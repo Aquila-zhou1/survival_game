@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTextEdit>
+#include <Qlabel>
 #include "map.h"
 #include "player.h"
 #include "enemy.h"
@@ -15,13 +16,25 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+private:
+    int currentLevel = 1;      // 当前关卡
+    int totalLevels = 20;       // 总关卡数
+
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit  MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     // 声明 initializeGame() 函数
 private slots:
     void initializeGame();
+    void generateEnemiesForCurrentLevel();
+    void levelComplete();
+    void gameLoop();
+    void updateMap();
+    void updatePlayerStatus(int experience, int level);
+
+
+protected:
     void keyPressEvent(QKeyEvent *event);  // 键盘按下事件
 
 
@@ -32,7 +45,7 @@ private:
     Player *player1;
     QList<Enemy*> enemies;
 
-    void updateMap();
-    void gameLoop();
+private:
+    QLabel* playerStatusLabel;  // 显示玩家的状态（经验、等级等）
 };
 #endif // MAINWINDOW_H
