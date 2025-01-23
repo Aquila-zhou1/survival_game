@@ -21,6 +21,8 @@ class MainWindow : public QMainWindow
 private:
     int currentLevel = 1;      // 当前关卡
     int totalLevels = 20;       // 总关卡数
+    bool can_create_new = true;
+    QPushButton *startButton;
 
 
 public:
@@ -33,6 +35,7 @@ private slots:
     void levelComplete();
     void gameLoop();
     void updateMap();
+    void updateGame();
     void updatePlayerStatus(int experience, int level);
 
 
