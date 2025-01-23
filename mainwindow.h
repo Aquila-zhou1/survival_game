@@ -23,6 +23,7 @@ private:
     int totalLevels = 20;       // 总关卡数
     bool can_create_new = true;
     QPushButton *startButton;
+    QTimer *gameTimer;  // 定义一个成员变量用于管理定时器
 
 
 public:

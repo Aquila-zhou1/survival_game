@@ -12,7 +12,7 @@
 #include <qapplication.h>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), player1(nullptr)  {
+    : QMainWindow(parent), player1(nullptr), gameTimer(new QTimer(this))  {
     // 创建控件
     startButton = new QPushButton("Start Game", this);
     QLabel *statusLabel = new QLabel("Game Status: Ready", this);
@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
     // 连接信号与槽
     startButton->setEnabled(can_create_new);
     connect(startButton, &QPushButton::clicked, this, &MainWindow::initializeGame);
+    connect(gameTimer, &QTimer::timeout, this, &MainWindow::gameLoop);
 
 }
 
@@ -78,11 +79,13 @@ void MainWindow::initializeGame() {
     // 创建两个敌人
     Enemy* enemy1 = new MeleeEnemy(8, 8);  // 近战敌人
     Enemy* enemy2 = new RangedEnemy(1, 1); // 远程敌人
-
+    enemies.append(enemy1);
+    enemies.append(enemy2);
     // 设置敌人 注意：在这之前敌人一直是空指针
     gameMap->setEnemy(enemy1, enemy2);
+    gameTimer->start(100);  // 每 100 毫秒调用一次 gameLoop
 
-    gameLoop();
+    // gameLoop();
 }
 
 // 更新玩家状态的显示
@@ -127,6 +130,7 @@ void MainWindow::gameLoop() {
 
     // 如果所有敌人都死了，提示游戏结束
     if (allEnemiesDead) {
+        gameTimer->stop();  // 停止定时器
         // 显示消息框
         QMessageBox::StandardButton reply = QMessageBox::question(this, "Level Complete",
                                                                   "You have cleared all enemies! Do you want to continue to the next level?",
@@ -138,12 +142,14 @@ void MainWindow::gameLoop() {
             close();  // 玩家选择退出
         }
     }
+    // else{
+    //     // 应该等上一个连接信号完成后才调用gameloop和定时器方法
+    //     // 设置定时器，100毫秒调用一次 gameLoop 方法
+    //     QTimer *timer = new QTimer(this);
+    //     connect(timer, &QTimer::timeout, this, &MainWindow::gameLoop);
+    //     timer->start(5000);  // 每 100 毫秒调用一次
+    // }
 
-    // 应该等上一个连接信号完成后才调用gameloop和定时器方法
-    // 设置定时器，100毫秒调用一次 gameLoop 方法
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::gameLoop);
-    timer->start(5000);  // 每 100 毫秒调用一次
 }
 
 
@@ -191,6 +197,20 @@ void MainWindow::updateMap() { //绘制文本版本地图
     updatePlayerStatus(player1->getExperience(), player1->getLevel());
 }
 
+
+void MainWindow::updateGame(){
+    // 继续下一关
+    currentLevel++;
+    if (currentLevel <= totalLevels) {
+        generateEnemiesForCurrentLevel();  // 生成新的敌人
+        initializeGame();
+    } else {
+        QMessageBox::information(this, "Game Over", "Congratulations! You've completed all levels!");
+        close();  // 游戏结束，关闭窗口
+    }
+}
+
+
 void MainWindow::generateEnemiesForCurrentLevel(){
     // 清空当前敌人
     enemies.clear();
@@ -201,19 +221,6 @@ void MainWindow::generateEnemiesForCurrentLevel(){
     // 创建敌人
     for (int i = 0; i < numEnemies; ++i) {
         Enemy* enemy = gameMap->getEnemy(i); // 血量、攻击力逐步增加
-    }
-}
-
-
-void MainWindow::updateGame(){
-    // 继续下一关
-    currentLevel++;
-    if (currentLevel <= totalLevels) {
-        generateEnemiesForCurrentLevel();  // 生成新的敌人
-        updateMap();  // 更新地图
-    } else {
-        QMessageBox::information(this, "Game Over", "Congratulations! You've completed all levels!");
-        close();  // 游戏结束，关闭窗口
     }
 }
 
