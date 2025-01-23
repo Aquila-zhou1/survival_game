@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/way">
+        <file>images/block/way.png</file>
+        <file>images/block/box.png</file>
+    </qresource>
+    <qresource prefix="/green_one">
+        <file>images/Goblin/Attack.png</file>
+        <file>images/Goblin/Death.png</file>
+        <file>images/Goblin/Idle.png</file>
+        <file>images/Goblin/Run.png</file>
+        <file>images/Goblin/Take_Hit.png</file>
+    </qresource>
+    <qresource prefix="/eyes">
+        <file>images/eyes/Attack.png</file>
+        <file>images/eyes/Death.png</file>
+        <file>images/eyes/Flight.png</file>
+        <file>images/eyes/Take_Hit.png</file>
+    </qresource>
+</RCC>

@@ -2,6 +2,7 @@
 #define MAP_H
 //#include "enemy.h"
 #include <vector>
+#include <QMessageBox>
 // 定义格子的类型
 enum class CellType {
     Normal,      // 普通格子
@@ -40,6 +41,7 @@ public:
     Enemy* getEnemy(int index) {
         if (index == 0) return enemy1;
         if (index == 1) return enemy2;
+        qDebug() << "索引越界";
         return nullptr;  // 索引越界时返回空指针
     }
     // 设置敌人

@@ -1,4 +1,5 @@
 #include "player.h"
+#include "enemy.h"
 #include "mainwindow.h"
 #include <cstdlib>
 #include <ctime>

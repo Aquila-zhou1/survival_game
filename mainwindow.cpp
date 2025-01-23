@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 创建控件
     QPushButton *startButton = new QPushButton("Start Game", this);
     QLabel *statusLabel = new QLabel("Game Status: Ready", this);
+
+
     mapDisplay = new QTextEdit(this);  // 创建 QTextEdit 控件用于显示地图
     mapDisplay->setReadOnly(true);
 
@@ -40,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 连接信号与槽
     connect(startButton, &QPushButton::clicked, this, &MainWindow::initializeGame);
 
+
+    // 应该等上一个连接信号完成后才调用gameloop和定时器方法
     // 设置定时器，100毫秒调用一次 gameLoop 方法
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::gameLoop);
@@ -116,19 +120,19 @@ void MainWindow::initializeGame() {
     gameMap->generateObstacles(5);
 
     // 创建武器对象
-    Weapon* rangedWeapon = new Weapon(WeaponType::Ranged, 3, 5, 5);  // 远程武器
-    player1 = new Player("Archer", 100, 15, 1, rangedWeapon, 2, 3, 10);  // 创建玩家
+    // Weapon* rangedWeapon = new Weapon(WeaponType::Ranged, 3, 5, 5);  // 远程武器
+    // player1 = new Player("Archer", 100, 15, 1, rangedWeapon, 2, 3, 10);  // 创建玩家
 
     gameMap->getCell(0, 0).cellType = CellType::Player;  // 将玩家放在左上角（0, 0）
 
     // 将地图转换为字符串并显示在 QTextEdit 中
-    updateMap();
+    // updateMap(); // 感觉这一步没必要
     // 创建敌人
     // 创建两个敌人
     Enemy* enemy1 = new MeleeEnemy(8, 8);  // 近战敌人
     Enemy* enemy2 = new RangedEnemy(1, 1); // 远程敌人
 
-    // 设置敌人
+    // 设置敌人 注意：在这之前敌人一直是空指针
     gameMap->setEnemy(enemy1, enemy2);
     // 将地图转换为字符串并显示在 QTextEdit 中
     updateMap();
@@ -142,7 +146,7 @@ void MainWindow::updatePlayerStatus(int experience, int level) {
                                    .arg(experience));
 }
 
-void MainWindow::updateMap() {
+void MainWindow::updateMap() { //绘制文本版本地图
     QString mapString = "";
     // 直接从 Map 中获取敌人
     for (int i = 0; i < gameMap->getRowCount(); ++i) {

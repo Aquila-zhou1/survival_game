@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QTextEdit>
 #include <Qlabel>
+#include <QScrollArea>
+#include <QGridLayout>
 #include "map.h"
 #include "player.h"
 #include "enemy.h"
@@ -42,6 +44,8 @@ private:
     Ui::MainWindow *ui;
     Map *gameMap;
     QTextEdit *mapDisplay;
+    QGridLayout *gridLayout;  // 声明 gridLayout 作为成员变量
+    QScrollArea *scrollArea;  // 声明 QScrollArea 作为成员变量
     Player *player1;
     QList<Enemy*> enemies;
 
