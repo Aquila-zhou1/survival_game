@@ -16,6 +16,10 @@ public:
     int getDamageArea() const { return damageArea; }
     int getDuration() const { return duration; }
     int getCooldown() const { return cooldown; }
+    void setType(WeaponType t) { type = t;}
+    void setDamageArea(int da) { damageArea = da;}
+    void setDuration(int d) { duration = d;}
+    void setCooldown(int c) { cooldown = c;}
 
     void useWeapon() {
         lastUsed = duration;  // 使用武器时，记录武器上次使用的时间

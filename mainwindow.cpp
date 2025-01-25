@@ -10,6 +10,11 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <qapplication.h>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFile>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), player1(nullptr), gameTimer(new QTimer(this))  {
@@ -34,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 连接信号与槽
     startButton->setEnabled(can_create_new);
-    connect(startButton, &QPushButton::clicked, this, &MainWindow::initializeGame);
+    connect(startButton, &QPushButton::clicked, this, &MainWindow::start_setting);
     connect(gameTimer, &QTimer::timeout, this, &MainWindow::gameLoop);
 
 }
@@ -49,8 +54,19 @@ MainWindow::~MainWindow() {
     // 不需要显式删除布局或控件，因为它们的父对象会自动清理
 }
 
+
+void MainWindow::start_setting(){
+    bool need_archive = false;
+    QMessageBox::StandardButton start_begin = QMessageBox::question(this, "Hello!", "Do you want to load the archive?",
+                                                                    QMessageBox::Yes | QMessageBox::No);
+    if(start_begin == QMessageBox::Yes){
+        need_archive = true;
+    }
+    initializeGame(need_archive);
+}
+
 // 初始化游戏函数
-void MainWindow::initializeGame() {
+void MainWindow::initializeGame(bool need_archive) {
     can_create_new = false;
     startButton->setEnabled(can_create_new);
     // 创建玩家和武器
@@ -81,9 +97,13 @@ void MainWindow::initializeGame() {
     Enemy* enemy2 = new RangedEnemy(1, 1); // 远程敌人
     enemies.append(enemy1);
     enemies.append(enemy2);
-    // 设置敌人 注意：在这之前敌人一直是空指针
+
+    if(need_archive){
+        loadArchive(enemy1, enemy2);
+    }
+    // 设置敌人 注意：在这之前enemies一直为空
     gameMap->setEnemy(enemy1, enemy2);
-    gameTimer->start(100);  // 每 100 毫秒调用一次 gameLoop
+    gameTimer->start(500);  // 每 100 毫秒调用一次 gameLoop
 
     // gameLoop();
 }
@@ -201,6 +221,7 @@ void MainWindow::updateMap() { //绘制文本版本地图
 void MainWindow::updateGame(){
     // 继续下一关
     currentLevel++;
+    saveArchive();      // 保存存档
     if (currentLevel <= totalLevels) {
         generateEnemiesForCurrentLevel();  // 生成新的敌人
         initializeGame();
@@ -214,7 +235,8 @@ void MainWindow::updateGame(){
 void MainWindow::generateEnemiesForCurrentLevel(){
     // 清空当前敌人
     enemies.clear();
-
+    delete player1;
+    delete gameMap;
     // 根据关卡生成敌人
     int numEnemies = 2;  // 每关敌人数量随关卡数增加
 
@@ -285,5 +307,138 @@ void MainWindow::levelComplete() {
     }
 }
 
+
+void MainWindow::saveArchive() {
+    QJsonObject gameState;
+
+    // 保存当前关卡
+    gameState["currentLevel"] = currentLevel;
+
+    // 保存玩家数据
+    QJsonObject playerData;
+    playerData["name"] = player1->getName();
+    playerData["health"] = player1->getHealth();
+    playerData["experience"] = player1->getExperience();
+    playerData["level"] = player1->getLevel();
+    QJsonArray playerPosition = {player1->getX(), player1->getY()};
+    playerData["position"] = playerPosition;
+
+    QJsonObject weaponData;
+    weaponData["type"] = player1->getWeapon()->getType() == WeaponType::Melee ? "Melee" : "Ranged";
+    weaponData["damageArea"] = player1->getWeapon()->getDamageArea();
+    weaponData["duration"] = player1->getWeapon()->getDuration();
+    // weaponData["cooldown"] = player1->getWeapon()->getCooldown();
+    playerData["weapon"] = weaponData;
+
+    gameState["player"] = playerData;
+
+    // 保存地图数据
+    QJsonObject mapData;
+    mapData["rows"] = gameMap->getRowCount();
+    mapData["cols"] = gameMap->getColCount();
+
+    // 保存障碍物
+    QJsonArray obstacles;
+    for (const auto& obstacle : gameMap->getObstacles()) {
+        QJsonArray obstaclePos = {obstacle.first, obstacle.second};
+        obstacles.append(obstaclePos);
+    }
+    mapData["obstacles"] = obstacles;
+
+    // 保存敌人数据
+    QJsonArray enemiesData;
+    for (int i = 0; i < enemies.size(); ++i) {
+        QJsonObject enemyData;
+        enemyData["type"] = enemies[i]->getType() == EnemyType::Melee ? "Melee" : "Ranged";
+        QJsonArray enemyPosition = {enemies[i]->getX(), enemies[i]->getY()};
+        enemyData["position"] = enemyPosition;
+        enemyData["health"] = 100;
+        enemiesData.append(enemyData);
+    }
+    mapData["enemyPositions"] = enemiesData;
+
+    gameState["map"] = mapData;
+
+    // 写入 JSON 文件
+    QFile file("archive.json");
+    if (file.open(QIODevice::WriteOnly)) {
+        QJsonDocument doc(gameState);
+        file.write(doc.toJson());
+        file.close();
+    }
+    qDebug() << "write successfully!";
+}
+
+
+void MainWindow::loadArchive(Enemy*& enemy1, Enemy*& enemy2) {
+    QFile file("archive.json");
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Load Error", "No save file found.");
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    QJsonObject gameState = doc.object();
+
+    // 加载当前关卡
+    currentLevel = gameState["currentLevel"].toInt();
+
+    // 加载玩家数据
+    QJsonObject playerData = gameState["player"].toObject();
+    player1->setName(playerData["name"].toString());
+    player1->setHealth(playerData["health"].toInt());
+    player1->setExperience(playerData["experience"].toInt());
+    player1->setLevel(playerData["level"].toInt());
+
+    QJsonArray playerPosition = playerData["position"].toArray();
+    player1->setPosition(playerPosition[0].toInt(), playerPosition[1].toInt());
+
+    QJsonObject weaponData = playerData["weapon"].toObject();
+    WeaponType weaponType = weaponData["type"].toString() == "Melee" ? WeaponType::Melee : WeaponType::Ranged;
+    player1->setWeapon(new Weapon(weaponType, weaponData["damageArea"].toInt(), weaponData["duration"].toInt(), 5));
+
+    // 加载地图数据
+    QJsonObject mapData = gameState["map"].toObject();
+    delete gameMap;
+    gameMap = new Map(mapData["rows"].toInt(), mapData["cols"].toInt());
+
+    // 加载障碍物
+    QJsonArray obstacles = mapData["obstacles"].toArray();
+    for (const auto& obstacle : obstacles) {
+        QJsonArray pos = obstacle.toArray();
+        gameMap->addObstacle(pos[0].toInt(), pos[1].toInt());
+    }
+
+    // 加载敌人数据
+    enemies.clear();
+
+
+    QJsonArray enemiesData = mapData["enemyPositions"].toArray();
+    for (const auto& enemy : enemiesData) {
+        QJsonObject enemyData = enemy.toObject();
+        EnemyType enemyType = enemyData["type"].toString() == "Melee" ? EnemyType::Melee : EnemyType::Ranged;
+        if(enemyType == EnemyType::Melee){
+            delete enemy1;
+            enemy1 = new MeleeEnemy(1,1);
+            QJsonArray pos = enemyData["position"].toArray();
+            enemy1->setPosition(pos[0].toInt(), pos[1].toInt());
+            enemy1->setHealth(enemyData["health"].toInt());
+
+            enemies.append(enemy1);
+        }
+        else{
+            delete enemy2;
+            enemy2 = new RangedEnemy(8,8);
+            QJsonArray pos = enemyData["position"].toArray();
+            enemy2->setPosition(pos[0].toInt(), pos[1].toInt());
+            enemy2->setHealth(enemyData["health"].toInt());
+
+            enemies.append(enemy2);
+        }
+    }
+}
 
 

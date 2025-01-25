@@ -5,10 +5,8 @@
 #include <ctime>
 
 Player::Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent)
-    : QObject(parent), name(name), health(health), attackPower(attackPower), speed(speed),
-    weapon(weapon), damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0), experience(0), level(1) {
-    std::srand(std::time(nullptr));  // 初始化随机数生成器
-}
+    : QObject(parent), name(name), health(health), attackPower(attackPower), speed(speed), weapon(weapon),
+    damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0), experience(0), level(1) {}
 
 void Player::takeDamage(int damage) {
     health -= damage;
@@ -113,3 +111,4 @@ void Player::applyPowerUp(const PowerUp& powerUp) {
     if (speed < 1) speed = 1;  // 最小移动速度为1
     if (cooldown < 0) cooldown = 0;  // 冷却时间不能为负
 }
+

@@ -23,11 +23,12 @@ public:
     int getY() const { return y; }
     int getHealth() const { return health; }
     EnemyType getType() const { return type; }
+    // 设置位置
+    void setPosition(int newX, int newY) {x = newX; y = newY;}
+    // 设置生命值
+    void setHealth(int newHealth) {health = newHealth;}
     // takeDamage方法，用于敌人受到伤害
-    void takeDamage(int damage) {
-        health -= damage;
-        if (health < 0) health = 0;  // 确保生命值不小于0
-    }
+    void takeDamage(int damage) {health -= damage;if (health < 0) health = 0;}
 
 protected:
     int health;

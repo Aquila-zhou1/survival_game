@@ -31,13 +31,16 @@ public:
     ~MainWindow();
     // 声明 initializeGame() 函数
 private slots:
-    void initializeGame();
+    void initializeGame(bool need_archive = false);
     void generateEnemiesForCurrentLevel();
     void levelComplete();
     void gameLoop();
     void updateMap();
     void updateGame();
     void updatePlayerStatus(int experience, int level);
+    void saveArchive();
+    void loadArchive(Enemy*& enemy1, Enemy*& enemy2);
+    void start_setting();
 
 
 protected:

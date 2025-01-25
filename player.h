@@ -75,22 +75,34 @@ public:
     Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent = nullptr);
 
     QString getName() const { return name; }
+    void setName(const QString &newName) {name = newName;}
+
     int getHealth() const { return health; }
+    void setHealth(int newHealth) {health = newHealth;}
+
     int getExperience() const { return experience; }
+    void setExperience(int newExperience) {experience = newExperience;}
+
     int getLevel() const { return level; }
+    void setLevel(int newLevel) {level = newLevel;}
+
+    int getX() const { return x; }
+    int getY() const { return y; }
+    void setPosition(int newX, int newY) {x = newX;y = newY;}
+    void setWeapon(Weapon* w) {weapon = w;}
 
     void takeDamage(int damage);
     void heal(int amount);
     void move(int dx, int dy, Map *gameMap);
     void attack(Map *gameMap);
 
-    int getX() const { return x; }  // 获取玩家的X坐标
-    int getY() const { return y; }  // 获取玩家的Y坐标
+    void addExperience(int amount); //增加经验
+    void levelUp();     // 升级
+    PowerUp getPowerUp();       //随机选择强化
+    void applyPowerUp(const PowerUp& powerUp);      //应用强化
 
-    void addExperience(int amount);  // 增加经验
-    void levelUp();  // 升级
-    PowerUp getPowerUp();  // 随机选择强化
-    void applyPowerUp(const PowerUp& powerUp);  // 应用强化
+    Weapon* getWeapon() const {return weapon;}
+
 
 private:
     QString name;
@@ -103,8 +115,8 @@ private:
     int cooldown;
     int x, y;
 
-    int experience;  // 经验值
-    int level;  // 等级
+    int experience;
+    int level;
 };
 
 #endif // PLAYER_H

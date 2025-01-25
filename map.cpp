@@ -37,6 +37,26 @@ void Map::generateObstacles(int count) {
     }
 }
 
+
+// 获取障碍物的位置信息
+std::vector<std::pair<int, int>> Map::getObstacles() const {
+    std::vector<std::pair<int, int>> obstacles;
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            if (grid[row][col].cellType == CellType::Obstacle) {
+                obstacles.push_back({row, col});
+            }
+        }
+    }
+    return obstacles;
+}
+
+
+void Map::addObstacle(int row, int col){
+    grid[row][col].cellType == CellType::Obstacle;
+}
+
+
 // 打印地图（用于调试）
 void Map::printMap() const {
     for (int i = 0; i < rows; ++i) {

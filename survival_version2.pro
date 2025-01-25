@@ -12,7 +12,8 @@ SOURCES += \
     map.cpp \
     player.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    weapon.cpp
 
 HEADERS += \
     enemy.h \
