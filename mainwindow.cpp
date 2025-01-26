@@ -14,34 +14,51 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFile>
+#include "mapdisplay.h"
+#include <QMutex>
 
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), player1(nullptr), gameTimer(new QTimer(this))  {
     // 创建控件
+    qDebug() << "成功new mapdisplay0";
+
     startButton = new QPushButton("Start Game", this);
     QLabel *statusLabel = new QLabel("Game Status: Ready", this);
 
-
-    mapDisplay = new QTextEdit(this);  // 创建 QTextEdit 控件用于显示地图
-    mapDisplay->setReadOnly(true);
+    // mapDisplay = new QTextEdit(this);  // 创建 QTextEdit 控件用于显示地图
+    // mapDisplay->setReadOnly(true);    // 初始化地图，假设地图大小为 10x10
+    gameMap = new Map(10, 10);
+    gameMap->generateObstacles(5);       // 随机生成至少 5 个障碍物
+    mapDisplay = new MapDisplay(this);
+    qDebug() <<  "准备渲染地图";
+    mapDisplay->renderMap(gameMap);
+    qDebug() <<  "成功渲染地图";
+    qDebug() << "成功new mapdisplay";
 
     // 设置布局
+    startButton->setFixedSize(200, 50);
+    statusLabel->setFixedSize(200, 50);
+    mapDisplay->setFixedSize(1000, 700);  // 设置一个固定大小
+
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(startButton);
     layout->addWidget(statusLabel);
     layout->addWidget(mapDisplay);
+    qDebug() << "成功new mapdisplay1";
 
     // 创建一个中央部件，设置布局
     QWidget *centralWidget = new QWidget(this);
     centralWidget->setLayout(layout);
     setCentralWidget(centralWidget);
+    // centralWidget->adjustSize();  // 调整大小
+    qDebug() << "成功new mapdisplay2";
 
     // 连接信号与槽
     startButton->setEnabled(can_create_new);
     connect(startButton, &QPushButton::clicked, this, &MainWindow::start_setting);
     connect(gameTimer, &QTimer::timeout, this, &MainWindow::gameLoop);
-
+    qDebug() << "成功new mapdisplay3";
 }
 
 MainWindow::~MainWindow() {
@@ -56,17 +73,20 @@ MainWindow::~MainWindow() {
 
 
 void MainWindow::start_setting(){
+    qDebug() << "成功new mapdisplay4";
     bool need_archive = false;
     QMessageBox::StandardButton start_begin = QMessageBox::question(this, "Hello!", "Do you want to load the archive?",
                                                                     QMessageBox::Yes | QMessageBox::No);
     if(start_begin == QMessageBox::Yes){
         need_archive = true;
     }
+    qDebug() << "成功new mapdisplay5";
     initializeGame(need_archive);
 }
 
 // 初始化游戏函数
 void MainWindow::initializeGame(bool need_archive) {
+    qDebug() << "成功new mapdisplay6";
     can_create_new = false;
     startButton->setEnabled(can_create_new);
     // 创建玩家和武器
@@ -75,36 +95,42 @@ void MainWindow::initializeGame(bool need_archive) {
 
     // 创建玩家状态标签
     playerStatusLabel = new QLabel("Player: Warrior | Level: 1 | Experience: 0", this);
-
-
+    qDebug() << "gameMap是否为空指针：" <<(gameMap == nullptr);
+    // delete gameMap;
+    qDebug() << "成功 delete Map";
     // 初始化地图，假设地图大小为 10x10
     gameMap = new Map(10, 10);
-
+    qDebug() << "成功 new Map";
     // 随机生成至少 5 个障碍物
     gameMap->generateObstacles(5);
 
+
+
+    qDebug() << "成功 new Map1";
     // 创建武器对象
     // Weapon* rangedWeapon = new Weapon(WeaponType::Ranged, 3, 5, 5);  // 远程武器
     // player1 = new Player("Archer", 100, 15, 1, rangedWeapon, 2, 3, 10);  // 创建玩家
 
     gameMap->getCell(0, 0).cellType = CellType::Player;  // 将玩家放在左上角（0, 0）
-
+    qDebug() << "成功 new Map2";
     // 将地图转换为字符串并显示在 QTextEdit 中
     // updateMap(); // 感觉这一步没必要
     // 创建敌人
     // 创建两个敌人
     Enemy* enemy1 = new MeleeEnemy(8, 8);  // 近战敌人
     Enemy* enemy2 = new RangedEnemy(1, 1); // 远程敌人
+    qDebug() << "成功 new Map3";
     enemies.append(enemy1);
     enemies.append(enemy2);
-
+    qDebug() << "成功 new Map4";
     if(need_archive){
         loadArchive(enemy1, enemy2);
     }
     // 设置敌人 注意：在这之前enemies一直为空
     gameMap->setEnemy(enemy1, enemy2);
-    gameTimer->start(500);  // 每 100 毫秒调用一次 gameLoop
-
+    qDebug() << "成功 new Map5";
+    gameTimer->start(500);  // 每 300 毫秒调用一次 gameLoop
+    qDebug() << "准备gameloop";
     // gameLoop();
 }
 
@@ -123,6 +149,8 @@ void MainWindow::gameLoop() {
     // 更新敌人的位置
     // 逐个更新敌人的位置和攻击玩家
     // 将地图转换为字符串并显示在 QTextEdit 中
+    qDebug() << "gameloop";
+    qDebug() << "Enemy 是空指针吗？1" << (gameMap->getEnemy(1)==nullptr);
     updateMap();
 
 
@@ -173,48 +201,54 @@ void MainWindow::gameLoop() {
 }
 
 
-void MainWindow::updateMap() { //绘制文本版本地图
-    QString mapString = "";
-    // 直接从 Map 中获取敌人
-    for (int i = 0; i < gameMap->getRowCount(); ++i) {
-        for (int j = 0; j < gameMap->getColCount(); ++j) {
-            bool enemyFound = false;
+void MainWindow::updateMap() { //绘制地图
+    // QString mapString = "";
+    // // 直接从 Map 中获取敌人
+    // for (int i = 0; i < gameMap->getRowCount(); ++i) {
+    //     for (int j = 0; j < gameMap->getColCount(); ++j) {
+    //         bool enemyFound = false;
 
-            // 检查是否有敌人在当前位置
-            for (int k = 0; k < 2; ++k) {  // 这里只有两个敌人
-                Enemy* enemy = gameMap->getEnemy(k);
-                if (enemy && enemy->getX() == j && enemy->getY() == i) {
-                    if (enemy->getType() == EnemyType::Melee) {
-                        mapString += " M ";  // 近战敌人
-                    } else if (enemy->getType() == EnemyType::Ranged) {
-                        mapString += " R ";  // 远程敌人
-                    }
-                    mapString += QString("(%1) ");  // 显示敌人生命值
-                    mapString += QString::number(enemy->getHealth());
-                    enemyFound = true;
-                    break;
-                }
-            }
+    //         // 检查是否有敌人在当前位置
+    //         for (int k = 0; k < 2; ++k) {  // 这里只有两个敌人
+    //             Enemy* enemy = gameMap->getEnemy(k);
+    //             if (enemy && enemy->getX() == j && enemy->getY() == i) {
+    //                 if (enemy->getType() == EnemyType::Melee) {
+    //                     mapString += " M ";  // 近战敌人
+    //                 } else if (enemy->getType() == EnemyType::Ranged) {
+    //                     mapString += " R ";  // 远程敌人
+    //                 }
+    //                 mapString += QString("(%1) ");  // 显示敌人生命值
+    //                 mapString += QString::number(enemy->getHealth());
+    //                 enemyFound = true;
+    //                 break;
+    //             }
+    //         }
 
-            if (!enemyFound) {
-                if (gameMap->getCell(i, j).cellType == CellType::Normal) {
-                    mapString += " . ";  // 普通格子
-                } else if (gameMap->getCell(i, j).cellType == CellType::Obstacle) {
-                    mapString += " # ";  // 障碍物
-                } else if (gameMap->getCell(i, j).cellType == CellType::Player) {
-                    mapString += " P ";  // 玩家
-                    mapString += QString("(%1) ");  // 显示玩家生命值
-                    mapString += QString::number(player1->getHealth());  // 显示玩家生命值
-                }
-            }
-        }
-        mapString += "\n";  // 换行
-    }
-    // 在文本框中更新地图显示
-    mapDisplay->setText(mapString);
+    //         if (!enemyFound) {
+    //             if (gameMap->getCell(i, j).cellType == CellType::Normal) {
+    //                 mapString += " . ";  // 普通格子
+    //             } else if (gameMap->getCell(i, j).cellType == CellType::Obstacle) {
+    //                 mapString += " # ";  // 障碍物
+    //             } else if (gameMap->getCell(i, j).cellType == CellType::Player) {
+    //                 mapString += " P ";  // 玩家
+    //                 mapString += QString("(%1) ");  // 显示玩家生命值
+    //                 mapString += QString::number(player1->getHealth());  // 显示玩家生命值
+    //             }
+    //         }
+    //     }
+    //     mapString += "\n";  // 换行ws
+    // }
+    // // 在文本框中更新地图显示
+    // mapDisplay->setText(mapString);
 
-    // 更新玩家的状态信息
+    // // 更新玩家的状态信息
+    // updatePlayerStatus(player1->getExperience(), player1->getLevel());
+
+    qDebug() << "Enemy 是空指针吗？2" << (gameMap->getEnemy(1)==nullptr);
+    mapDisplay->renderMap(gameMap);  // 触发 MapDisplay 的重绘
     updatePlayerStatus(player1->getExperience(), player1->getLevel());
+
+
 }
 
 
@@ -223,7 +257,9 @@ void MainWindow::updateGame(){
     currentLevel++;
     saveArchive();      // 保存存档
     if (currentLevel <= totalLevels) {
+        qDebug() << "准备生成新的敌人";
         generateEnemiesForCurrentLevel();  // 生成新的敌人
+        qDebug() << "成功生成新的敌人";
         initializeGame();
     } else {
         QMessageBox::information(this, "Game Over", "Congratulations! You've completed all levels!");

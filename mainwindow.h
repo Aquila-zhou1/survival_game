@@ -9,6 +9,8 @@
 #include "map.h"
 #include "player.h"
 #include "enemy.h"
+#include "MapDisplay.h"
+#include <QMutex>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -50,11 +52,13 @@ protected:
 private:
     Ui::MainWindow *ui;
     Map *gameMap;
-    QTextEdit *mapDisplay;
+    // QTextEdit *mapDisplay;
+    MapDisplay *mapDisplay;
     QGridLayout *gridLayout;  // 声明 gridLayout 作为成员变量
     QScrollArea *scrollArea;  // 声明 QScrollArea 作为成员变量
     Player *player1;
     QList<Enemy*> enemies;
+    QMutex mutex;
 
 private:
     QLabel* playerStatusLabel;  // 显示玩家的状态（经验、等级等）
