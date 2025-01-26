@@ -36,9 +36,11 @@ public:
         // 加载图像资源
         normalBlockPixmap = QPixmap(":/way/images/block/way.png");
         obstacleBlockPixmap = QPixmap(":/way/images/block/box.png");
-        playerPixmap = QPixmap(":/green_one/images/Goblin/Run.png");
+        playerPixmap = QPixmap(":/player/images/player/Walk.png");
         enemyMeleePixmap = QPixmap(":/green_one/images/Goblin/Run.png");
+        M_P = QPixmap(":/green_one/images/Goblin/Take_Hit.png");
         enemyRangedPixmap = QPixmap(":/eyes/images/eyes/Flight.png");
+        E_P = QPixmap(":/eyes/images/eyes/Take_Hit.png");
     }
 
     // 渲染地图的方法，接收 gameMap 作为参数
@@ -98,11 +100,17 @@ public:
                 QRect rect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
                 qDebug() << "敌人！2";
                 if (enemy->getType() == EnemyType::Melee) {
-                    item = new QGraphicsPixmapItem(enemyMeleePixmap);
+                    if (enemy->getHealth() <=10)
+                        item = new QGraphicsPixmapItem(M_P);
+                    else
+                        item = new QGraphicsPixmapItem(enemyMeleePixmap);
                     item->setPos(rect.topLeft());  // 设置位置
                     scene->addItem(item);  // 添加到场景中
                 } else{
-                    item = new QGraphicsPixmapItem(enemyRangedPixmap);
+                    if (enemy->getHealth() <=10)
+                        item = new QGraphicsPixmapItem(E_P);
+                    else
+                        item = new QGraphicsPixmapItem(enemyRangedPixmap);
                     item->setPos(rect.topLeft());  // 设置位置
                     scene->addItem(item);  // 添加到场景中
                 }
@@ -118,7 +126,9 @@ private:
     QPixmap obstacleBlockPixmap;
     QPixmap playerPixmap;
     QPixmap enemyMeleePixmap;
+    QPixmap M_P;
     QPixmap enemyRangedPixmap;
+    QPixmap E_P;
     QGraphicsPixmapItem* enemyItem1;
     QGraphicsPixmapItem* enemyItem2;
 };

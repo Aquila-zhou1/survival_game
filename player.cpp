@@ -6,7 +6,7 @@
 
 Player::Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent)
     : QObject(parent), name(name), health(health), attackPower(attackPower), speed(speed), weapon(weapon),
-    damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0), experience(0), level(1) {}
+    damageArea(damageArea), duration(duration), cooldown(cooldown), x(0), y(0), experience(0), level(1), money(0), add_health(0){}
 
 void Player::takeDamage(int damage) {
     health -= damage;

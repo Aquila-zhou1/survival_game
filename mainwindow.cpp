@@ -24,7 +24,9 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "成功new mapdisplay0";
 
     startButton = new QPushButton("Start Game", this);
-    QLabel *statusLabel = new QLabel("Game Status: Ready", this);
+    middleButton = new QPushButton("局内商店", this);
+    endButton = new QPushButton("全局商店", this);
+    // QLabel *statusLabel = new QLabel("Game Status: Ready", this);
 
     // mapDisplay = new QTextEdit(this);  // 创建 QTextEdit 控件用于显示地图
     // mapDisplay->setReadOnly(true);    // 初始化地图，假设地图大小为 10x10
@@ -38,12 +40,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 设置布局
     startButton->setFixedSize(200, 50);
-    statusLabel->setFixedSize(200, 50);
+    middleButton->setFixedSize(200, 50);
+    endButton->setFixedSize(200, 50);
+    middleButton->setEnabled(can_mid);
+    endButton->setEnabled(can_end);
+    // statusLabel->setFixedSize(200, 50);
     mapDisplay->setFixedSize(1000, 700);  // 设置一个固定大小
 
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(startButton);
-    layout->addWidget(statusLabel);
+    layout->addWidget(middleButton);
+    layout->addWidget(endButton);
+    // layout->addWidget(statusLabel);
     layout->addWidget(mapDisplay);
     qDebug() << "成功new mapdisplay1";
 
@@ -57,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 连接信号与槽
     startButton->setEnabled(can_create_new);
     connect(startButton, &QPushButton::clicked, this, &MainWindow::start_setting);
+    connect(middleButton, &QPushButton::clicked, this, &MainWindow::mid_setting);
+    connect(endButton, &QPushButton::clicked, this, &MainWindow::end_setting);
     connect(gameTimer, &QTimer::timeout, this, &MainWindow::gameLoop);
     qDebug() << "成功new mapdisplay3";
 }
@@ -82,6 +92,28 @@ void MainWindow::start_setting(){
     }
     qDebug() << "成功new mapdisplay5";
     initializeGame(need_archive);
+}
+
+void MainWindow::mid_setting(){
+    QMessageBox::StandardButton end = QMessageBox::question(this, "Hello!", "Spend 100 gold coins to temporarily buy 50 drops of health or increase attack power by 50%? Choose yes for the former and No for the latter.",
+                                                            QMessageBox::Yes | QMessageBox::No);
+    if(end == QMessageBox::Yes){
+        player1->setaddHealth(50);
+    }
+    can_mid = false;
+    endButton->setEnabled(can_mid);
+}
+
+
+void MainWindow::end_setting(){
+    QMessageBox::StandardButton end = QMessageBox::question(this, "Hello!", "Do you want to spend 300 gold coins to buy 100 health points permanently?",
+                                                            QMessageBox::Yes | QMessageBox::No);
+    if(end == QMessageBox::Yes){
+        player1->addMoney(-300);
+        player1->setaddHealth(100);
+    }
+    can_end = false;
+    endButton->setEnabled(can_end);
 }
 
 // 初始化游戏函数
@@ -254,6 +286,12 @@ void MainWindow::updateMap() { //绘制地图
 
 void MainWindow::updateGame(){
     // 继续下一关
+    player1->addMoney(200);  // 每关结束获得200金币
+    int price = 300;
+    if(player1->getMoney() >= price){
+        can_end = true;
+        endButton->setEnabled(can_end);
+    }
     currentLevel++;
     saveArchive();      // 保存存档
     if (currentLevel <= totalLevels) {
@@ -356,6 +394,8 @@ void MainWindow::saveArchive() {
     playerData["health"] = player1->getHealth();
     playerData["experience"] = player1->getExperience();
     playerData["level"] = player1->getLevel();
+    playerData["money"] = player1->getMoney();
+    playerData["add_health"] = player1->getaddHealth();
     QJsonArray playerPosition = {player1->getX(), player1->getY()};
     playerData["position"] = playerPosition;
 
@@ -425,9 +465,11 @@ void MainWindow::loadArchive(Enemy*& enemy1, Enemy*& enemy2) {
     // 加载玩家数据
     QJsonObject playerData = gameState["player"].toObject();
     player1->setName(playerData["name"].toString());
-    player1->setHealth(playerData["health"].toInt());
+    player1->setHealth(playerData["health"].toInt()+playerData["add_health"].toInt());
     player1->setExperience(playerData["experience"].toInt());
     player1->setLevel(playerData["level"].toInt());
+    player1->setMoney(playerData["money"].toInt());
+    player1->setaddHealth(playerData["add_health"].toInt());
 
     QJsonArray playerPosition = playerData["position"].toArray();
     player1->setPosition(playerPosition[0].toInt(), playerPosition[1].toInt());

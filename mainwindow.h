@@ -24,7 +24,11 @@ private:
     int currentLevel = 1;      // 当前关卡
     int totalLevels = 20;       // 总关卡数
     bool can_create_new = true;
+    bool can_mid = false;
+    bool can_end = false;
     QPushButton *startButton;
+    QPushButton *middleButton;
+    QPushButton *endButton;
     QTimer *gameTimer;  // 定义一个成员变量用于管理定时器
 
 
@@ -43,6 +47,8 @@ private slots:
     void saveArchive();
     void loadArchive(Enemy*& enemy1, Enemy*& enemy2);
     void start_setting();
+    void mid_setting();
+    void end_setting();
 
 
 protected:

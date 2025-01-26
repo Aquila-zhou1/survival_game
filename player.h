@@ -74,6 +74,15 @@ class Player : public QObject {
 public:
     Player(QString name, int health, int attackPower, int speed, Weapon* weapon, int damageArea, int duration, int cooldown, QObject *parent = nullptr);
 
+    int getMoney() const {return money;}
+    void setMoney(int m) {money = m;}
+    void addMoney(int m) {money = money+m;}
+
+    int getaddHealth() const {return add_health;}
+    void setaddHealth(int h) {add_health = h;}
+
+
+
     QString getName() const { return name; }
     void setName(const QString &newName) {name = newName;}
 
@@ -107,8 +116,10 @@ public:
 private:
     QString name;
     int health;
+    int add_health;
     int attackPower;
     int speed;
+    int money;
     Weapon* weapon;
     int damageArea;
     int duration;

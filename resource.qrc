@@ -16,4 +16,12 @@
         <file>images/eyes/Flight.png</file>
         <file>images/eyes/Take_Hit.png</file>
     </qresource>
+    <qresource prefix="/player">
+        <file>images/player/Attack.png</file>
+        <file>images/player/Death.png</file>
+        <file>images/player/Idle.png</file>
+        <file>images/player/Shield.png</file>
+        <file>images/player/Take_Hit.png</file>
+        <file>images/player/Walk.png</file>
+    </qresource>
 </RCC>
